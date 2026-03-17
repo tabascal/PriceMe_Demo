@@ -398,7 +398,7 @@ def main():
     display["Ladder Price"]  = display["product_name"].map(ladder)
     display["Δ vs Current"]  = (display["Ladder Price"] - display["price_current"]).round(2)
     display["€ / Unit"]      = display.apply(
-        lambda r: round(r["Ladder Price"] / r["volume"], 4)
+        lambda r: round(r["Ladder Price"] / r["volume"], 2)
         if pd.notna(r["volume"]) and r["volume"] else None, axis=1,
     )
     display = display.rename(columns={
@@ -409,6 +409,16 @@ def main():
         f"p_{scenario_choice}": "Pre-ladder (€)",
     })
 
+    fmt = {
+        "Dose":           "{:.0f}",
+        "Volume":         "{:.0f}",
+        "Current (€)":    "{:.2f}",
+        "Pre-ladder (€)": "{:.2f}",
+        "Ladder Price":   "{:.2f}",
+        "Δ vs Current":   "{:.2f}",
+        "€ / Unit":       "{:.2f}",
+    }
+
     def _color_delta(val):
         if isinstance(val, (int, float)):
             if val > 0:  return "color: #27AE60; font-weight: 600"
@@ -417,7 +427,8 @@ def main():
 
     styled = (
         display.sort_values("Volume")
-        .style.map(_color_delta, subset=["Δ vs Current"])
+        .style.format(fmt)
+        .map(_color_delta, subset=["Δ vs Current"])
     )
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
