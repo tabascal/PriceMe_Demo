@@ -160,7 +160,7 @@ def scenario_bar(p0, scenarios):
         showlegend=False,
         yaxis=dict(range=[min(prices) * 0.92, max(prices) * 1.09],
                    showgrid=True, gridcolor="#EEE",
-                   title="Price (€)", titlefont_color=C["muted"]),
+                   title=dict(text="Price (€)", font=dict(color=C["muted"]))),
         xaxis=dict(tickfont=dict(size=13)),
         plot_bgcolor="white",
         paper_bgcolor="rgba(0,0,0,0)",
@@ -213,7 +213,7 @@ def main():
         ("Category",     row["category"]),
         ("Current Price",f"€ {p0:.2f}"),
         ("Market Price", f"€ {row['price_market']:.2f}"),
-        ("Beta (β)",     row["beta"]),
+        ("Elasticity (β)", row["beta"]),
         ("Market Share", f"{row['market_share_12m']:.0%}"),
     ]
     for col, (label, val) in zip(cols, snapshot):
@@ -237,7 +237,7 @@ def main():
     with b1:
         st.markdown('<div class="label">Elasticity</div>', unsafe_allow_html=True)
         st.markdown(f'<span class="badge badge-{bucket}">{bucket}</span>'
-                    f'<div style="color:{C["muted"]};font-size:0.8rem;margin-top:4px">β = {row["beta"]}</div>',
+                    f'<div style="color:{C["muted"]};font-size:0.8rem;margin-top:4px">Elasticity β = {row["beta"]}</div>',
                     unsafe_allow_html=True)
     b2.metric("Margin Target", f"{base['margin_target']:.1%}")
     b3.metric("Base Price",    f"€ {base['p_base']:.2f}")
