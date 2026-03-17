@@ -227,6 +227,7 @@ def main():
 
     # ── Layer 1 ───────────────────────────────────────────────────────────────
     st.subheader("Layer 1 — Anchor Price")
+    st.caption("We start by calculating the minimum viable price: what the product needs to cost to cover expenses (COGS + inflation) while hitting the margin target. Products with low price sensitivity get a higher target margin.")
     base   = compute_base_price(row)
     bucket = base["elasticity_bucket"]
     diff   = base["p_base"] - p0
@@ -257,6 +258,7 @@ def main():
 
     # ── Layer 2 ───────────────────────────────────────────────────────────────
     st.subheader("Layer 2 — Product Scores")
+    st.caption("Four dimensions assess the product's market position: brand strength, category growth momentum, price competitiveness vs. the market, and commercial health (rotation & revenue). Each score runs from 0 to 100.")
     scores = compute_scores(row)
     col_radar, col_bars = st.columns([1.4, 1])
     with col_radar:
@@ -269,6 +271,7 @@ def main():
 
     # ── Layer 3 ───────────────────────────────────────────────────────────────
     st.subheader("Layer 3 — Pricing Power")
+    st.caption("The four scores are combined into a single Pricing Power index (0–100). This drives λ (lambda): how boldly we move from the current price toward the anchor price. A strong product (high score) gets a λ close to 1 — meaning a full move. A weak product stays closer to its current price.")
     s_power = compute_pricing_power(scores)
     lam     = compute_lambda(s_power)
     lam_color = C["low"] if lam < 0.4 else (C["medium"] if lam < 0.6 else C["high"])
@@ -293,6 +296,7 @@ def main():
 
     # ── Layer 4 ───────────────────────────────────────────────────────────────
     st.subheader("Layer 4 — Price Scenarios")
+    st.caption("Three pricing strategies are offered — Conservative, Base, and Aggressive — each scaling λ differently. Guardrails are applied automatically: maximum price change caps per scenario, and an additional cap if the product is already above market price and commercially weak.")
     scenarios = compute_scenarios(row, scores, base["p_base"])
 
     sc1, sc2, sc3 = st.columns(3)
@@ -324,6 +328,7 @@ def main():
 
     # ── Layer 5 ───────────────────────────────────────────────────────────────
     st.subheader("Layer 5 — Brand Portfolio & Price Ladder")
+    st.caption("Prices are reviewed across the full brand portfolio to ensure internal coherence: larger pack sizes must always offer a lower price per unit than smaller ones. An optimisation algorithm adjusts individual prices minimally to enforce this rule, then applies psychological rounding (e.g. €9.95, €12.75).")
     brand_df  = df[df["brand"] == row["brand"]].copy()
     portfolio = _portfolio_scenarios(brand_df)
 
