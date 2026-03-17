@@ -10,21 +10,22 @@ from pricing_engine import (
 
 st.set_page_config(page_title="PriceMe", layout="wide")
 
-# ── Palette ───────────────────────────────────────────────────────────────────
+# ── Palette — aligned with Theme v2 ──────────────────────────────────────────
 C = {
-    "primary":      "#1B3A6B",
-    "conservative": "#3498DB",
-    "base":         "#27AE60",
-    "aggressive":   "#E67E22",
-    "low":          "#E74C3C",
-    "medium":       "#F39C12",
-    "high":         "#27AE60",
-    "muted":        "#7F8C8D",
+    "primary":      "#1B4D5C",   # theme: deep teal
+    "conservative": "#3888D6",   # theme: dataColors[1]
+    "base":         "#51BD6C",   # theme: good / dataColors[0]
+    "aggressive":   "#FDAB89",   # theme: dataColors[16] warm salmon
+    "low":          "#CB2D37",   # theme: bad
+    "medium":       "#F1CF6A",   # theme: neutral / center
+    "high":         "#51BD6C",   # theme: good
+    "muted":        "#5F6B6D",   # theme: dataColors[11]
     "bg":           "#F4F6FA",
 }
 
 st.markdown(f"""
 <style>
+    * {{ font-family: 'Segoe UI Semibold', 'Segoe UI', helvetica, arial, sans-serif !important; }}
     .block-container {{ padding-top: 1.5rem; padding-bottom: 2rem; }}
     h1 {{ color: {C['primary']}; }}
     h3 {{ color: {C['primary']}; border-bottom: 2px solid {C['primary']}22;
