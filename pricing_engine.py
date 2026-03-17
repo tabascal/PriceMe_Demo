@@ -5,9 +5,9 @@ from scipy.optimize import minimize
 # ── Constants ────────────────────────────────────────────────────────────────
 
 MARGIN_BY_ELASTICITY = {
-    "Low":    0.30,
-    "Medium": 0.425,
-    "High":   0.575,
+    "Low":    0.70,
+    "Medium": 0.70,
+    "High":   0.70,
 }
 
 # S_brand weights: MS_12 (0.5), ΔMS (0.3), SOV proxy (0.2)
