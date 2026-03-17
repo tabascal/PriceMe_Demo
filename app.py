@@ -12,15 +12,21 @@ st.set_page_config(page_title="PriceMe", layout="wide")
 
 # ── Palette — aligned with Theme v2 ──────────────────────────────────────────
 C = {
-    "primary":      "#1B4D5C",   # theme: deep teal
-    "conservative": "#3888D6",   # theme: dataColors[1]
-    "base":         "#51BD6C",   # theme: good / dataColors[0]
-    "aggressive":   "#FDAB89",   # theme: dataColors[16] warm salmon
-    "low":          "#CB2D37",   # theme: bad
-    "medium":       "#F1CF6A",   # theme: neutral / center
-    "high":         "#51BD6C",   # theme: good
-    "muted":        "#5F6B6D",   # theme: dataColors[11]
+    "primary":      "#1B4D5C",   # deep teal
+    "conservative": "#3888D6",   # dataColors[1] blue
+    "base":         "#51BD6C",   # dataColors[0] green  /  good
+    "aggressive":   "#FDAB89",   # dataColors[16] warm salmon
+    "low":          "#CB2D37",   # bad
+    "medium":       "#F1CF6A",   # neutral / center
+    "high":         "#51BD6C",   # good
+    "muted":        "#5F6B6D",   # dataColors[11]
     "bg":           "#F4F6FA",
+    # extra theme accents
+    "blue_lt":      "#4DACF1",   # dataColors[3]  light blue
+    "green_dk":     "#38934E",   # dataColors[2]  dark green
+    "green_lt":     "#C4FC9F",   # dataColors[6]  mint
+    "blue_bg":      "#B3DCF9",   # dataColors[7]  sky blue
+    "teal":         "#4AC5BB",   # dataColors[10] teal
 }
 
 st.markdown(f"""
@@ -44,7 +50,10 @@ st.markdown(f"""
     .kpi-card {{
         background: white; border-radius: 10px; padding: 14px 18px;
         box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+        border-left: 4px solid {C['blue_lt']};
     }}
+    .kpi-card-green {{ border-left-color: {C['base']} !important; }}
+    .kpi-card-teal  {{ border-left-color: {C['teal']} !important; }}
     .kpi-val  {{ font-size: 1.6rem; font-weight: 700; color: {C['primary']}; margin: 2px 0; }}
     .sc-card  {{
         border-radius: 10px; padding: 20px 16px; text-align: center;
@@ -99,9 +108,9 @@ def radar_chart(scores):
     fig = go.Figure(go.Scatterpolar(
         r=vals + [vals[0]], theta=cats + [cats[0]],
         fill="toself",
-        fillcolor=f"rgba(27,58,107,0.12)",
-        line=dict(color=C["primary"], width=2.5),
-        marker=dict(size=6, color=C["primary"]),
+        fillcolor="rgba(81,189,108,0.18)",   # theme green, semi-transparent
+        line=dict(color=C["green_dk"], width=2.5),
+        marker=dict(size=7, color=C["base"], line=dict(color="white", width=1.5)),
     ))
     fig.update_layout(
         polar=dict(
@@ -130,9 +139,9 @@ def gauge_chart(s_power):
             "bar":  {"color": color, "thickness": 0.28},
             "bgcolor": "white", "borderwidth": 0,
             "steps": [
-                {"range": [0,  40], "color": "#FADBD8"},
-                {"range": [40, 60], "color": "#FDEBD0"},
-                {"range": [60,100], "color": "#D5F5E3"},
+                {"range": [0,  40], "color": "#FADBD8"},          # low  — red tint
+                {"range": [40, 60], "color": "#B3DCF9"},          # mid  — theme sky blue
+                {"range": [60,100], "color": "#C4FC9F"},          # high — theme mint green
             ],
         },
     ))
@@ -144,28 +153,73 @@ def gauge_chart(s_power):
 
 
 def scenario_bar(p0, scenarios):
-    labels  = ["Current", "Conservative", "Base", "Aggressive"]
-    prices  = [p0, scenarios["conservative"], scenarios["base"], scenarios["aggressive"]]
-    colors  = [C["muted"], C["conservative"], C["base"], C["aggressive"]]
-    fig = go.Figure(go.Bar(
+    labels = ["Conservative", "Base", "Aggressive"]
+    prices = [scenarios["conservative"], scenarios["base"], scenarios["aggressive"]]
+    colors = [C["conservative"], C["base"], C["aggressive"]]
+    fills  = ["rgba(56,136,214,0.15)", "rgba(81,189,108,0.15)", "rgba(253,171,137,0.15)"]
+    deltas = [(p - p0) / p0 * 100 for p in prices]
+
+    fig = go.Figure()
+
+    # Background highlight bands per scenario
+    for i, (label, fill) in enumerate(zip(labels, fills)):
+        fig.add_vrect(x0=i - 0.42, x1=i + 0.42, fillcolor=fill,
+                      layer="below", line_width=0)
+
+    # Bars
+    fig.add_trace(go.Bar(
         x=labels, y=prices,
-        marker_color=colors,
-        marker_line_width=0,
-        text=[f"€ {p:.2f}" for p in prices],
-        textposition="outside",
-        textfont=dict(size=13, color=C["primary"], family="sans-serif"),
-        width=0.45,
-    ))
-    fig.update_layout(
-        height=310,
+        marker=dict(color=colors, line=dict(width=0), opacity=0.92),
+        width=0.5,
         showlegend=False,
-        yaxis=dict(range=[min(prices) * 0.92, max(prices) * 1.09],
-                   showgrid=True, gridcolor="#EEE",
-                   title=dict(text="Price (€)", font=dict(color=C["muted"]))),
-        xaxis=dict(tickfont=dict(size=13)),
+        hovertemplate="<b>%{x}</b><br>€ %{y:.2f}<extra></extra>",
+    ))
+
+    # Price label inside/top of bar
+    for label, price, color in zip(labels, prices, colors):
+        fig.add_annotation(
+            x=label, y=price,
+            text=f"<b>€ {price:.2f}</b>",
+            showarrow=False, yshift=14,
+            font=dict(size=15, color=color),
+        )
+
+    # Delta badge below price label
+    for label, price, delta in zip(labels, prices, deltas):
+        d_color = C["green_dk"] if delta >= 0 else C["low"]
+        arrow   = "▲" if delta >= 0 else "▼"
+        fig.add_annotation(
+            x=label, y=price,
+            text=f"<b>{arrow} {delta:+.1f}%</b>",
+            showarrow=False, yshift=36,
+            font=dict(size=12, color=d_color),
+        )
+
+    # Reference line — current price
+    fig.add_hline(
+        y=p0, line_dash="dash", line_color=C["muted"], line_width=1.8,
+        annotation_text=f"<b>Current  € {p0:.2f}</b>",
+        annotation_position="right",
+        annotation_font=dict(size=11, color=C["muted"]),
+    )
+
+    all_vals = prices + [p0]
+    fig.update_layout(
+        height=380,
+        showlegend=False,
+        yaxis=dict(
+            range=[min(all_vals) * 0.88, max(all_vals) * 1.14],
+            showgrid=True, gridcolor="#EEE", gridwidth=1, zeroline=False,
+            tickprefix="€ ", tickfont=dict(size=11, color=C["muted"]),
+        ),
+        xaxis=dict(
+            tickfont=dict(size=14, color=C["primary"]),
+            showline=False, ticks="",
+        ),
         plot_bgcolor="white",
         paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=50, r=20, t=30, b=10),
+        margin=dict(l=60, r=110, t=50, b=20),
+        bargap=0.35,
     )
     return fig
 
@@ -173,9 +227,9 @@ def scenario_bar(p0, scenarios):
 def score_bars_html(scores):
     items = [
         ("Brand",           "S_brand",           C["primary"]),
-        ("Growth",          "S_growth",          C["base"]),
-        ("Competitiveness", "S_competitiveness", C["conservative"]),
-        ("Health",          "S_health",          C["aggressive"]),
+        ("Growth",          "S_growth",          C["green_dk"]),
+        ("Competitiveness", "S_competitiveness", C["blue_lt"]),
+        ("Health",          "S_health",          C["teal"]),
     ]
     html = ""
     for label, key, color in items:
@@ -217,9 +271,10 @@ def main():
         ("Elasticity (β)", row["beta"]),
         ("Market Share", f"{row['market_share_12m']:.0%}"),
     ]
-    for col, (label, val) in zip(cols, snapshot):
+    accents = ["", "kpi-card-green", "kpi-card-teal", "kpi-card-green", "", "kpi-card-teal"]
+    for col, (label, val), extra in zip(cols, snapshot, accents):
         col.markdown(
-            f'<div class="kpi-card"><div class="label">{label}</div>'
+            f'<div class="kpi-card {extra}"><div class="label">{label}</div>'
             f'<div class="kpi-val">{val}</div></div>',
             unsafe_allow_html=True,
         )
